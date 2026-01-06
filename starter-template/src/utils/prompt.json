@@ -1,0 +1,416 @@
+{
+  "dsl_spec": {
+    "version": "0.1",
+    "description": "Function and action catalog for AlgoTrade Democratizer strategy DSL",
+    "types": [
+      "number",
+      "bool",
+      "time",
+      "string"
+    ],
+    "operators": {
+      "arithmetic": ["+", "-", "*", "/", "%"],
+      "comparison": [">", "<", ">=", "<=", "==", "!="]
+    },
+    "offsets": {
+      "description": "Offsets apply to time-series expressions via @ operator",
+      "units": ["bars", "minutes", "hours", "days", "weeks", "months", "years"]
+    },
+    "functions": [
+      {
+        "name": "close",
+        "category": "price",
+        "return_type": "number",
+        "args": [],
+        "description": "Current bar close price."
+      },
+      {
+        "name": "open",
+        "category": "price",
+        "return_type": "number",
+        "args": [],
+        "description": "Current bar open price."
+      },
+      {
+        "name": "high",
+        "category": "price",
+        "return_type": "number",
+        "args": [],
+        "description": "Current bar high price."
+      },
+      {
+        "name": "low",
+        "category": "price",
+        "return_type": "number",
+        "args": [],
+        "description": "Current bar low price."
+      },
+      {
+        "name": "volume",
+        "category": "price",
+        "return_type": "number",
+        "args": [],
+        "description": "Current bar volume."
+      },
+
+      {
+        "name": "rsi",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "source", "type": "number", "allowed_values": ["close", "open", "high", "low"] },
+          { "name": "length", "type": "number", "min": 1, "max": 300 }
+        ],
+        "description": "Relative Strength Index."
+      },
+      {
+        "name": "ema",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "source", "type": "number", "allowed_values": ["close", "open", "high", "low"] },
+          { "name": "length", "type": "number", "min": 1, "max": 1000 }
+        ],
+        "description": "Exponential Moving Average."
+      },
+      {
+        "name": "sma",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "source", "type": "number", "allowed_values": ["close", "open", "high", "low"] },
+          { "name": "length", "type": "number", "min": 1, "max": 1000 }
+        ],
+        "description": "Simple Moving Average."
+      },
+      {
+        "name": "wma",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "source", "type": "number" },
+          { "name": "length", "type": "number" }
+        ],
+        "description": "Weighted Moving Average."
+      },
+      {
+        "name": "macd",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "source", "type": "number", "allowed_values": ["close"] },
+          { "name": "fast_length", "type": "number", "default": 12 },
+          { "name": "slow_length", "type": "number", "default": 26 },
+          { "name": "signal_length", "type": "number", "default": 9 }
+        ],
+        "description": "MACD main line."
+      },
+      {
+        "name": "macd_signal",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "source", "type": "number", "allowed_values": ["close"] },
+          { "name": "fast_length", "type": "number", "default": 12 },
+          { "name": "slow_length", "type": "number", "default": 26 },
+          { "name": "signal_length", "type": "number", "default": 9 }
+        ],
+        "description": "MACD signal line."
+      },
+      {
+        "name": "macd_hist",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "source", "type": "number", "allowed_values": ["close"] },
+          { "name": "fast_length", "type": "number", "default": 12 },
+          { "name": "slow_length", "type": "number", "default": 26 },
+          { "name": "signal_length", "type": "number", "default": 9 }
+        ],
+        "description": "MACD histogram (main - signal)."
+      },
+      {
+        "name": "atr",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "length", "type": "number", "min": 1, "max": 300 }
+        ],
+        "description": "Average True Range."
+      },
+      {
+        "name": "supertrend",
+        "category": "indicator",
+        "return_type": "number",
+        "args": [
+          { "name": "length", "type": "number" },
+          { "name": "multiplier", "type": "number" }
+        ],
+        "description": "Supertrend value for trend detection."
+      },
+
+      {
+        "name": "timeOfDay",
+        "category": "time",
+        "return_type": "time",
+        "args": [],
+        "description": "Current bar time of day in HH:MM."
+      },
+      {
+        "name": "dayOfWeek",
+        "category": "time",
+        "return_type": "number",
+        "args": [],
+        "description": "Day of week as integer (1-7)."
+      },
+      {
+        "name": "sessionOpen",
+        "category": "time",
+        "return_type": "bool",
+        "args": [],
+        "description": "True if current bar is within main session hours."
+      },
+      {
+        "name": "timeBetween",
+        "category": "time",
+        "return_type": "bool",
+        "args": [
+          { "name": "start", "type": "time" },
+          { "name": "end", "type": "time" }
+        ],
+        "description": "True if timeOfDay is between start and end (inclusive)."
+      },
+
+      {
+        "name": "fetch",
+        "category": "external",
+        "return_type": "number",
+        "args": [
+          { "name": "source", "type": "string" },
+          { "name": "symbol", "type": "string" },
+          { "name": "field", "type": "string" }
+        ],
+        "description": "External numeric feature, e.g. sentiment score or fundamental metric."
+      },
+      {
+        "name": "fetch_text",
+        "category": "external",
+        "return_type": "string",
+        "args": [
+          { "name": "source", "type": "string" },
+          { "name": "symbol", "type": "string" },
+          { "name": "field", "type": "string" }
+        ],
+        "description": "External text feature."
+      },
+
+      {
+        "name": "position_size",
+        "category": "portfolio",
+        "return_type": "number",
+        "args": [
+          { "name": "symbol", "type": "string" }
+        ],
+        "description": "Current position quantity (positive for long, negative for short)."
+      },
+      {
+        "name": "position_avg_price",
+        "category": "portfolio",
+        "return_type": "number",
+        "args": [
+          { "name": "symbol", "type": "string" }
+        ],
+        "description": "Average fill price of the open position."
+      },
+      {
+        "name": "unrealized_pnl",
+        "category": "portfolio",
+        "return_type": "number",
+        "args": [
+          { "name": "symbol", "type": "string" }
+        ],
+        "description": "Unrealized profit or loss for the symbol."
+      },
+      {
+        "name": "realized_pnl",
+        "category": "portfolio",
+        "return_type": "number",
+        "args": [],
+        "description": "Total realized profit or loss for the strategy."
+      },
+      {
+        "name": "equity",
+        "category": "portfolio",
+        "return_type": "number",
+        "args": [],
+        "description": "Current account equity (cash + unrealized PnL)."
+      },
+      {
+        "name": "cash",
+        "category": "portfolio",
+        "return_type": "number",
+        "args": [],
+        "description": "Current available cash."
+      },
+      {
+        "name": "has_position",
+        "category": "portfolio",
+        "return_type": "bool",
+        "args": [
+          { "name": "symbol", "type": "string" }
+        ],
+        "description": "True if there is any open position in the symbol."
+      },
+      {
+        "name": "has_long",
+        "category": "portfolio",
+        "return_type": "bool",
+        "args": [
+          { "name": "symbol", "type": "string" }
+        ],
+        "description": "True if there is an open long position."
+      },
+      {
+        "name": "has_short",
+        "category": "portfolio",
+        "return_type": "bool",
+        "args": [
+          { "name": "symbol", "type": "string" }
+        ],
+        "description": "True if there is an open short position."
+      }
+    ],
+    "actions": [
+      {
+        "name": "ENTER_LONG",
+        "args": [
+          { "name": "symbol", "type": "string" },
+          { "name": "qty", "type": "number", "description": "Absolute quantity or percentage of equity if qty_type is PERCENT_EQUITY." },
+          { "name": "qty_type", "type": "string", "allowed_values": ["ABSOLUTE", "PERCENT_EQUITY"], "default": "ABSOLUTE" }
+        ],
+        "description": "Open or add to a long position."
+      },
+      {
+        "name": "ENTER_SHORT",
+        "args": [
+          { "name": "symbol", "type": "string" },
+          { "name": "qty", "type": "number" },
+          { "name": "qty_type", "type": "string", "allowed_values": ["ABSOLUTE", "PERCENT_EQUITY"], "default": "ABSOLUTE" }
+        ],
+        "description": "Open or add to a short position."
+      },
+      {
+        "name": "EXIT_LONG",
+        "args": [
+          { "name": "symbol", "type": "string" },
+          { "name": "qty", "type": "string", "allowed_values": ["ALL", "HALF"], "default": "ALL", "description": "Amount to exit: ALL or HALF" }
+        ],
+        "description": "Close the long position for the symbol."
+      },
+      {
+        "name": "EXIT_SHORT",
+        "args": [
+          { "name": "symbol", "type": "string" },
+          { "name": "qty", "type": "string", "allowed_values": ["ALL", "HALF"], "default": "ALL", "description": "Amount to exit: ALL or HALF" }
+        ],
+        "description": "Close the short position for the symbol."
+      },
+      {
+        "name": "EXIT_ALL",
+        "args": [],
+        "description": "Close all open positions."
+      },
+      {
+        "name": "SET_STOP",
+        "args": [
+          { "name": "symbol", "type": "string" },
+          { "name": "stop_price", "type": "number" }
+        ],
+        "description": "Set or update a hard stop loss for the symbol."
+      },
+      {
+        "name": "SET_TRAILING_STOP",
+        "args": [
+          { "name": "symbol", "type": "string" },
+          { "name": "trail_percent", "type": "number" }
+        ],
+        "description": "Set a trailing stop at given percentage from peak price."
+      },
+      {
+        "name": "SET_TAKE_PROFIT",
+        "args": [
+          { "name": "symbol", "type": "string" },
+          { "name": "take_profit_price", "type": "number" }
+        ],
+        "description": "Set a take-profit target price."
+      },
+      {
+        "name": "CANCEL_ORDERS",
+        "args": [
+          { "name": "symbol", "type": "string" }
+        ],
+        "description": "Cancel all pending orders for the symbol."
+      },
+      {
+        "name": "NO_ACTION",
+        "args": [],
+        "description": "Explicitly perform no trading action; used as terminal for some branches."
+      }
+    ]
+  },
+  "output_format": {
+    "description": "Graph-based DSL output format. The LLM must ALWAYS return a single JSON object matching this structure.",
+    "required": ["symbol", "entryNode", "nodes"],
+    "properties": {
+      "symbol": "Primary trading symbol for this strategy (e.g. 'AAPL', 'BTCUSDT').",
+      "entryNode": "ID of the first node to evaluate on each bar.",
+      "nodes": "Array of condition and action nodes forming a decision graph."
+    },
+    "condition_node": {
+      "description": "Evaluates ONE atomic boolean comparison and routes to next nodes.",
+      "required": ["id", "type", "expr", "nextIfTrue", "nextIfFalse"],
+      "fields": {
+        "id": "Unique node identifier (e.g. 'cond1').",
+        "type": "Must be 'condition'.",
+        "expr": {
+          "description": "Atomic boolean comparison: left <op> right. NO logical AND/OR inside.",
+          "required": ["kind", "op", "left", "right"],
+          "kind": "Must be 'binary'.",
+          "op": "One of: >, <, >=, <=, ==, !=",
+          "left": "Left-hand expression object.",
+          "right": "Right-hand expression object."
+        },
+        "nextIfTrue": "ID of next node if true, or null to stop.",
+        "nextIfFalse": "ID of next node if false, or null to stop."
+      }
+    },
+    "action_node": {
+      "description": "Performs a trading action and optionally continues to another node.",
+      "required": ["id", "type", "actionType"],
+      "fields": {
+        "id": "Unique node identifier (e.g. 'actBuy1').",
+        "type": "Must be 'action'.",
+        "actionType": "One of: ENTER_LONG, ENTER_SHORT, EXIT_LONG, EXIT_SHORT, EXIT_ALL, SET_STOP, SET_TRAILING_STOP, SET_TAKE_PROFIT, CANCEL_ORDERS, NO_ACTION",
+        "symbol": "Symbol for this action (null uses top-level symbol).",
+        "qty": "Quantity or % (depends on qty_type). Null for actions without size.",
+        "qty_type": "One of: ABSOLUTE, PERCENT_EQUITY, or null.",
+        "params": "Optional extra parameters (e.g. stop_price, trail_percent).",
+        "next": "ID of next node after this action, or null for terminal."
+      }
+    },
+    "expression_object": {
+      "description": "Structure for left/right operands in condition expr.",
+      "kinds": {
+        "numberLiteral": { "kind": "numberLiteral", "value": 30 },
+        "stringLiteral": { "kind": "stringLiteral", "value": "09:30" },
+        "identifier": { "kind": "identifier", "name": "close" },
+        "funcCall": { "kind": "funcCall", "name": "rsi", "args": [{"kind": "identifier", "name": "close"}, {"kind": "numberLiteral", "value": 14}] }
+      },
+      "offset": {
+        "description": "Optional time offset for time-series expressions.",
+        "unit": "One of: bars, minutes, hours, days, weeks, months, years",
+        "value": "Non-negative integer."
+      }
+    }
+  }
+}

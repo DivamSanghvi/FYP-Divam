@@ -26,7 +26,7 @@ export const getDSLSpec = () => {
 // Generate function documentation from spec
 const generateFunctionDocs = (spec) => {
   const categories = {}
-  
+
   spec.functions.forEach(fn => {
     if (!categories[fn.category]) {
       categories[fn.category] = []
@@ -114,6 +114,7 @@ export const getLLMSystemPrompt = () => {
 5. Every path in the graph MUST terminate in an action node
 6. Return ONLY valid JSON, no markdown code fences, no explanation text
 7. Financial accuracy is critical - these strategies will be used by real traders
+8. POSITION CONDITIONS: If user mentions "don't already have a position" or similar, ALWAYS use binary expression with position_size() function - NEVER generate incomplete funcCall
 
 ## DSL SPECIFICATION v${spec.version}:
 ${spec.description}
@@ -205,9 +206,51 @@ DO NOT use "AND" or "OR" operators inside expr. Instead, chain condition nodes:
 2. All nextIfTrue, nextIfFalse, next must reference existing node IDs or be null
 3. Entry node must exist in nodes array
 4. All branches must terminate in an action node
-5. expr.kind must be "binary" for condition nodes
+5. expr.kind must be "binary" for condition nodes (ALWAYS need "kind", "op", "left", "right")
 6. Function names in funcCall must be from the function catalog
 7. actionType must be from the action list
+
+## HANDLING POSITION CONDITIONS:
+Position conditions check whether we already have an open position. These are ALWAYS expressed as binary comparisons using position_size().
+
+RULE: When user says "only if..." "but don't already have..." "if we don't have..." → They mean position condition.
+
+Examples of position condition phrases:
+- "but don't already have a long position" → position_size("SYMBOL") == 0
+- "only if we don't have an open position" → position_size("SYMBOL") == 0
+- "if we have a long position" → position_size("SYMBOL") > 0
+- "close any open position" → Check: position_size("SYMBOL") != 0
+
+CORRECT format for position conditions (ALWAYS binary, ALWAYS with position_size function):
+- Check no position: 
+  { "kind": "binary", "op": "==", "left": { "kind": "funcCall", "name": "position_size", "args": [{ "kind": "stringLiteral", "value": "AAPL" }] }, "right": { "kind": "numberLiteral", "value": 0 } }
+- Check has position: 
+  { "kind": "binary", "op": ">", "left": { "kind": "funcCall", "name": "position_size", "args": [{ "kind": "stringLiteral", "value": "AAPL" }] }, "right": { "kind": "numberLiteral", "value": 0 } }
+
+CRITICAL: For position conditions, the expr MUST ALWAYS have:
+- "kind": "binary"
+- "op": one of "==", ">", "<", "!=", ">=", "<="
+- "left": a funcCall to position_size()
+- "right": a numberLiteral
+
+NEVER generate incomplete funcCall like { "kind": "funcCall" } with no name.
+ALWAYS use full binary expression: { "kind": "binary", "op": "==", "left": {...}, "right": {...} }
+
+## CRITICAL: qty MUST ALWAYS BE A NUMBER
+- For ENTER_LONG/ENTER_SHORT: qty is the quantity or percentage of equity (use qty_type: "PERCENT_EQUITY")
+- For EXIT_LONG/EXIT_SHORT: qty is ALWAYS a percentage (1-100) of position_size(symbol)
+  - Use qty: 100 for "exit all" or "close position" (DEFAULT if not specified)
+  - Use qty: 50 for "exit half"
+  - Use qty: 25 for "exit quarter"
+- NEVER use strings like "ALL" or "HALF" for qty - ALWAYS use numbers
+- If user says "exit position" or "close position", use qty: 100, qty_type: "PERCENT_POSITION"
+
+### EXIT ACTION EXAMPLES:
+// Exit entire position (default)
+{ "actionType": "EXIT_LONG", "symbol": "AAPL", "qty": 100, "qty_type": "PERCENT_POSITION", "next": null }
+
+// Exit half position
+{ "actionType": "EXIT_LONG", "symbol": "AAPL", "qty": 50, "qty_type": "PERCENT_POSITION", "next": null }
 
 ## WARNINGS TO INCLUDE:
 - Missing stop-loss protection

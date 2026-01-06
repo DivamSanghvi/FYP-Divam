@@ -258,7 +258,7 @@ class StrategyValidator {
 
     // Validate qty_type if qty is provided
     if (qty !== undefined && qty_type) {
-      const validQtyTypes = ["ABSOLUTE", "PERCENT_EQUITY"]
+      const validQtyTypes = ["ABSOLUTE", "PERCENT_EQUITY", "PERCENT_POSITION"]
       if (!validQtyTypes.includes(qty_type)) {
         this.errors.push(`Action node ${id}: qty_type must be one of [${validQtyTypes.join(", ")}], got '${qty_type}'`)
       }

@@ -60,7 +60,7 @@ const nodeSchema = new mongoose.Schema({
   qty: mongoose.Schema.Types.Mixed, // quantity (number or null)
   qty_type: {
     type: String,
-    enum: ["ABSOLUTE", "PERCENT_EQUITY", null]
+    enum: ["ABSOLUTE", "PERCENT_EQUITY", "PERCENT_POSITION", null]
   },
   params: mongoose.Schema.Types.Mixed, // extra params like stop_price, trail_percent
   next: String // next node ID or null for terminal

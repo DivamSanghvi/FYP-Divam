@@ -43,11 +43,23 @@ export const interpretStrategy = async (req, res) => {
     // Get valid actions from spec
     const validActions = getValidActionNames()
 
-    // Auto-fix condition nodes: convert NOT (!) to equivalent comparison
+    // Auto-fix condition nodes: handle incomplete funcCall expressions
     graph.nodes = graph.nodes.map(node => {
       if (node.type === "condition" && node.expr) {
+        // Detect incomplete funcCall - has kind:funcCall but missing name or args
+        if (node.expr.kind === "funcCall" && (!node.expr.name || !Array.isArray(node.expr.args))) {
+          // Convert to a simple always-true condition (pass-through)
+          node.expr = {
+            kind: "binary",
+            op: "==",
+            left: { kind: "numberLiteral", value: 1 },
+            right: { kind: "numberLiteral", value: 1 }
+          }
+          if (!graph.warnings) graph.warnings = []
+          graph.warnings.push(`Auto-fixed: Converted incomplete position condition to pass-through (always true). Consider manually specifying position checking logic.`)
+        }
         // Handle ! (NOT) operator - convert to == false comparison
-        if (node.expr.op === "!" || node.expr.op === "NOT" || node.expr.op === "not") {
+        else if (node.expr.op === "!" || node.expr.op === "NOT" || node.expr.op === "not") {
           // NOT only has a right operand, convert to: right == false
           const operand = node.expr.right || node.expr.left
           node.expr = {
@@ -81,6 +93,33 @@ export const interpretStrategy = async (req, res) => {
           node.qty_type = "PERCENT_EQUITY"
           if (!graph.warnings) graph.warnings = []
           graph.warnings.push(`Auto-fixed: Added default qty 10% equity to ${actionType} action`)
+        }
+        
+        // Fix EXIT actions: convert string qty to numeric percentage
+        if (["EXIT_LONG", "EXIT_SHORT"].includes(actionType)) {
+          // Convert string qty to numeric
+          if (typeof node.qty === "string") {
+            const qtyStr = node.qty.toUpperCase()
+            if (qtyStr === "ALL" || qtyStr === "100%") {
+              node.qty = 100
+            } else if (qtyStr === "HALF" || qtyStr === "50%") {
+              node.qty = 50
+            } else if (qtyStr.endsWith("%")) {
+              node.qty = parseFloat(qtyStr) || 100
+            } else {
+              node.qty = 100 // Default to full exit
+            }
+            if (!graph.warnings) graph.warnings = []
+            graph.warnings.push(`Auto-fixed: Converted string qty "${qtyStr}" to numeric ${node.qty}%`)
+          }
+          
+          // Default to 100% if qty is missing
+          if (node.qty === undefined || node.qty === null) {
+            node.qty = 100
+          }
+          
+          // Always set qty_type to PERCENT_POSITION for exits
+          node.qty_type = "PERCENT_POSITION"
         }
       }
       return node

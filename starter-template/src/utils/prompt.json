@@ -203,8 +203,7 @@
         ],
         "description": "External text feature."
       },
-
-      {
+      { 
         "name": "position_size",
         "category": "portfolio",
         "return_type": "number",
@@ -303,17 +302,19 @@
         "name": "EXIT_LONG",
         "args": [
           { "name": "symbol", "type": "string" },
-          { "name": "qty", "type": "string", "allowed_values": ["ALL", "HALF"], "default": "ALL", "description": "Amount to exit: ALL or HALF" }
+          { "name": "qty", "type": "number", "default": 100, "description": "Percentage of position to exit (1-100). Use position_size(symbol) to get current position. Default 100 means exit entire position." },
+          { "name": "qty_type", "type": "string", "allowed_values": ["PERCENT_POSITION"], "default": "PERCENT_POSITION" }
         ],
-        "description": "Close the long position for the symbol."
+        "description": "Close the long position for the symbol. qty is always a percentage (1-100) of position_size(symbol)."
       },
       {
         "name": "EXIT_SHORT",
         "args": [
           { "name": "symbol", "type": "string" },
-          { "name": "qty", "type": "string", "allowed_values": ["ALL", "HALF"], "default": "ALL", "description": "Amount to exit: ALL or HALF" }
+          { "name": "qty", "type": "number", "default": 100, "description": "Percentage of position to exit (1-100). Use position_size(symbol) to get current position. Default 100 means exit entire position." },
+          { "name": "qty_type", "type": "string", "allowed_values": ["PERCENT_POSITION"], "default": "PERCENT_POSITION" }
         ],
-        "description": "Close the short position for the symbol."
+        "description": "Close the short position for the symbol. qty is always a percentage (1-100) of position_size(symbol)."
       },
       {
         "name": "EXIT_ALL",
@@ -392,8 +393,8 @@
         "type": "Must be 'action'.",
         "actionType": "One of: ENTER_LONG, ENTER_SHORT, EXIT_LONG, EXIT_SHORT, EXIT_ALL, SET_STOP, SET_TRAILING_STOP, SET_TAKE_PROFIT, CANCEL_ORDERS, NO_ACTION",
         "symbol": "Symbol for this action (null uses top-level symbol).",
-        "qty": "Quantity or % (depends on qty_type). Null for actions without size.",
-        "qty_type": "One of: ABSOLUTE, PERCENT_EQUITY, or null.",
+        "qty": "ALWAYS a number. For ENTER: quantity or percentage of equity. For EXIT: percentage of position (1-100). Default to 100 for exits if not specified. NEVER use strings like 'ALL' or 'HALF'.",
+        "qty_type": "One of: ABSOLUTE, PERCENT_EQUITY (for entries), PERCENT_POSITION (for exits).",
         "params": "Optional extra parameters (e.g. stop_price, trail_percent).",
         "next": "ID of next node after this action, or null for terminal."
       }

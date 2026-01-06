@@ -106,6 +106,11 @@ export const interpretStrategy = async (req, res) => {
       owner: req.user?._id
     })
 
+    // Log strategy JSON before saving
+    console.log("=== STRATEGY BEING SAVED TO MONGODB ===")
+    console.log(JSON.stringify(strategy.toObject(), null, 2))
+    console.log("========================================")
+
     // Save to database
     const savedStrategy = await strategy.save()
 

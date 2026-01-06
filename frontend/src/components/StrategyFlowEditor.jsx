@@ -189,50 +189,85 @@ export default function StrategyFlowEditor({
       return
     }
 
-    // Calculate positions using a simple tree layout
+    // Build node map
     const nodeMap = {}
     strategyNodes.forEach(n => { nodeMap[n.id] = n })
 
-    // BFS to assign levels
-    const levels = {}
-    const visited = new Set()
-    const queue = [[entryNode || strategyNodes[0].id, 0, 0]] // [nodeId, level, xOffset]
-    
-    let maxLevel = 0
+    // Calculate tree layout using BFS with proper spacing
     const nodePositions = {}
-    const levelCounts = {}
+    const visited = new Set()
+    const levelNodes = {} // Track nodes at each level for horizontal spacing
+    
+    // BFS to assign levels first
+    const startNode = entryNode || strategyNodes[0]?.id
+    if (!startNode) return
 
+    const queue = [{ nodeId: startNode, level: 0 }]
+    
     while (queue.length > 0) {
-      const [nodeId, level, parentX] = queue.shift()
+      const { nodeId, level } = queue.shift()
       if (visited.has(nodeId) || !nodeMap[nodeId]) continue
       visited.add(nodeId)
       
-      maxLevel = Math.max(maxLevel, level)
-      levelCounts[level] = (levelCounts[level] || 0) + 1
+      // Track this node at its level
+      if (!levelNodes[level]) levelNodes[level] = []
+      levelNodes[level].push(nodeId)
       
       const node = nodeMap[nodeId]
-      nodePositions[nodeId] = { 
-        x: parentX, 
-        y: level * 150,
-        level 
-      }
-
+      
+      // Queue children
       if (node.type === 'condition') {
-        if (node.nextIfTrue) queue.push([node.nextIfTrue, level + 1, parentX - 150])
-        if (node.nextIfFalse) queue.push([node.nextIfFalse, level + 1, parentX + 150])
-      } else if (node.nextNode) {
-        queue.push([node.nextNode, level + 1, parentX])
+        if (node.nextIfTrue && !visited.has(node.nextIfTrue)) {
+          queue.push({ nodeId: node.nextIfTrue, level: level + 1 })
+        }
+        if (node.nextIfFalse && !visited.has(node.nextIfFalse)) {
+          queue.push({ nodeId: node.nextIfFalse, level: level + 1 })
+        }
+      } else {
+        // Action node - check both 'next' (new format) and 'nextNode' (old format)
+        const nextNode = node.next || node.nextNode
+        if (nextNode && !visited.has(nextNode)) {
+          queue.push({ nodeId: nextNode, level: level + 1 })
+        }
       }
     }
 
+    // Handle any unvisited nodes (disconnected from graph)
+    strategyNodes.forEach(node => {
+      if (!visited.has(node.id)) {
+        const maxLevel = Math.max(...Object.keys(levelNodes).map(Number), 0) + 1
+        if (!levelNodes[maxLevel]) levelNodes[maxLevel] = []
+        levelNodes[maxLevel].push(node.id)
+      }
+    })
+
+    // Calculate positions - center nodes at each level
+    const NODE_WIDTH = 250
+    const NODE_HEIGHT = 150
+    const HORIZONTAL_SPACING = 50
+    const VERTICAL_SPACING = 180
+
+    Object.entries(levelNodes).forEach(([level, nodeIds]) => {
+      const levelNum = parseInt(level)
+      const totalWidth = nodeIds.length * NODE_WIDTH + (nodeIds.length - 1) * HORIZONTAL_SPACING
+      const startX = -totalWidth / 2
+
+      nodeIds.forEach((nodeId, index) => {
+        nodePositions[nodeId] = {
+          x: startX + index * (NODE_WIDTH + HORIZONTAL_SPACING) + 400, // Center offset
+          y: levelNum * VERTICAL_SPACING + 50
+        }
+      })
+    })
+
     // Create React Flow nodes
     const flowNodes = strategyNodes.map(node => {
-      const pos = nodePositions[node.id] || { x: 0, y: 0 }
+      const pos = nodePositions[node.id] || { x: 400, y: 50 }
       
       return {
         id: node.id,
         type: node.type === 'condition' ? 'condition' : 'action',
-        position: { x: pos.x + 300, y: pos.y + 50 }, // Center offset
+        position: { x: pos.x, y: pos.y },
         data: {
           label: node.id,
           expression: node.type === 'condition' ? getExprDesc(node.expr) : null,

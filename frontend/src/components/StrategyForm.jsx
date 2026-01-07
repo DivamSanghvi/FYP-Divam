@@ -15,15 +15,15 @@ export default function StrategyForm({ onSubmit, loading, error }) {
 
   const exampleStrategies = [
     {
-      icon: "📊",
+      icon: "",
       text: "Buy AAPL when RSI(14) drops below 30 and it's before 2 PM. Exit when RSI rises above 70."
     },
     {
-      icon: "📈",
+      icon: "",
       text: "Enter long when price crosses above EMA(20). Exit if RSI drops below 30."
     },
     {
-      icon: "⚡",
+      icon: "",
       text: "If MACD crosses above signal line and time is between 9:30 and 12:00, buy with 10% equity."
     }
   ]
@@ -42,7 +42,7 @@ export default function StrategyForm({ onSubmit, loading, error }) {
             transition={{ duration: 2, repeat: Infinity }}
             className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-xl"
           >
-            💬
+            Chat
           </motion.div>
           <div>
             <h2 className="text-lg font-bold text-white">Describe Your Strategy</h2>
@@ -81,7 +81,7 @@ export default function StrategyForm({ onSubmit, loading, error }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-dark-300 mb-2 font-medium">
-                <span className="mr-2">💎</span>Symbol
+                <span className="mr-2"></span>Symbol
               </label>
               <motion.input
                 type="text"
@@ -101,7 +101,7 @@ export default function StrategyForm({ onSubmit, loading, error }) {
 
             <div>
               <label className="block text-sm text-dark-300 mb-2 font-medium">
-                <span className="mr-2">⏱️</span>Timeframe
+                <span className="mr-2"></span>Timeframe
               </label>
               <motion.select
                 value={timeframe}
@@ -152,13 +152,13 @@ export default function StrategyForm({ onSubmit, loading, error }) {
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   >
-                    ⚙️
+                    
                   </motion.span>
                   Interpreting...
                 </>
               ) : (
                 <>
-                  🚀 Generate Strategy
+                  Generate Strategy
                 </>
               )}
             </span>
@@ -174,7 +174,7 @@ export default function StrategyForm({ onSubmit, loading, error }) {
               className="mt-4 p-4 rounded-xl bg-danger/10 border border-danger/30 overflow-hidden"
             >
               <div className="flex items-start gap-3">
-                <span className="text-xl">⚠️</span>
+                <span className="text-xl">⚠</span>
                 <div>
                   <p className="text-danger font-medium text-sm">Error</p>
                   <p className="text-danger/80 text-xs mt-1">{error}</p>
@@ -193,7 +193,7 @@ export default function StrategyForm({ onSubmit, loading, error }) {
         className="glass-card rounded-2xl p-6"
       >
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-lg">💡</span>
+          <span className="text-lg"></span>
           <h3 className="text-sm font-semibold text-dark-300">Try These Examples</h3>
         </div>
         <div className="space-y-3">

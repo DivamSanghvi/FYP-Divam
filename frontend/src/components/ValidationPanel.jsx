@@ -55,7 +55,7 @@ export default function ValidationPanel({ strategy }) {
         <ValidationSection
           type="error"
           items={strategy.validationErrors}
-          icon="❌"
+          icon=""
           title="Errors"
           colorClass="text-danger"
           borderClass="border-danger/30"
@@ -66,7 +66,7 @@ export default function ValidationPanel({ strategy }) {
         <ValidationSection
           type="warning"
           items={strategy.warnings}
-          icon="⚠️"
+          icon=""
           title="Warnings"
           colorClass="text-warning"
           borderClass="border-warning/30"
@@ -77,7 +77,7 @@ export default function ValidationPanel({ strategy }) {
         <ValidationSection
           type="suggestion"
           items={strategy.suggestedEdits}
-          icon="💡"
+          icon=""
           title="Suggestions"
           colorClass="text-accent-400"
           borderClass="border-accent-500/30"

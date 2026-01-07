@@ -32,7 +32,7 @@ const ConditionNode = ({ data, selected }) => {
       
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-lg bg-primary-500/30 flex items-center justify-center">
-          <span className="text-primary-300 text-lg">◇</span>
+          <span className="text-primary-300 text-lg">◊</span>
         </div>
         <span className="text-white font-bold text-sm tracking-wide">{data.label}</span>
       </div>
@@ -79,7 +79,7 @@ const ActionNode = ({ data, selected }) => {
           bg: 'from-emerald-900/90 to-emerald-950/90',
           border: selected ? 'border-emerald-400' : 'border-emerald-500/50',
           shadow: 'shadow-emerald-500/40',
-          icon: '📈',
+          icon: '',
           iconBg: 'bg-emerald-500/30',
           textColor: 'text-emerald-200'
         }
@@ -88,7 +88,7 @@ const ActionNode = ({ data, selected }) => {
           bg: 'from-rose-900/90 to-rose-950/90',
           border: selected ? 'border-rose-400' : 'border-rose-500/50',
           shadow: 'shadow-rose-500/40',
-          icon: '📉',
+          icon: '',
           iconBg: 'bg-rose-500/30',
           textColor: 'text-rose-200'
         }
@@ -99,7 +99,7 @@ const ActionNode = ({ data, selected }) => {
           bg: 'from-amber-900/90 to-amber-950/90',
           border: selected ? 'border-amber-400' : 'border-amber-500/50',
           shadow: 'shadow-amber-500/40',
-          icon: '🚪',
+          icon: '',
           iconBg: 'bg-amber-500/30',
           textColor: 'text-amber-200'
         }
@@ -108,7 +108,7 @@ const ActionNode = ({ data, selected }) => {
           bg: 'from-dark-700/90 to-dark-800/90',
           border: selected ? 'border-dark-400' : 'border-dark-500/50',
           shadow: 'shadow-dark-500/40',
-          icon: '⏸️',
+          icon: '',
           iconBg: 'bg-dark-500/30',
           textColor: 'text-dark-300'
         }
@@ -117,7 +117,7 @@ const ActionNode = ({ data, selected }) => {
           bg: 'from-accent-900/90 to-accent-950/90',
           border: selected ? 'border-accent-400' : 'border-accent-500/50',
           shadow: 'shadow-accent-500/40',
-          icon: '⚡',
+          icon: '',
           iconBg: 'bg-accent-500/30',
           textColor: 'text-accent-200'
         }
@@ -156,13 +156,13 @@ const ActionNode = ({ data, selected }) => {
         </div>
         {data.symbol && (
           <div className="text-white/60 text-xs flex items-center gap-2">
-            <span className="text-[10px]">💎</span>
+            <span className="text-[10px]"></span>
             <span>{data.symbol}</span>
           </div>
         )}
         {data.qty && (
           <div className="text-white/60 text-xs flex items-center gap-2">
-            <span className="text-[10px]">📊</span>
+            <span className="text-[10px]"></span>
             <span>{data.qty} {data.qty_type || ''}</span>
           </div>
         )}
@@ -411,7 +411,6 @@ export default function StrategyFlowEditor({
     return (
       <div className="h-[500px] flex items-center justify-center bg-gradient-to-br from-dark-900 to-dark-950 rounded-2xl border border-primary-500/20">
         <div className="text-center">
-          <div className="text-5xl mb-4 animate-bounce-soft">🔗</div>
           <p className="text-dark-400">Generate a strategy to see the flow diagram</p>
         </div>
       </div>
@@ -455,7 +454,7 @@ export default function StrategyFlowEditor({
       <div className="absolute bottom-4 left-4 glass rounded-xl px-5 py-3 flex gap-6 text-xs border border-primary-500/20">
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 rounded-lg bg-primary-500/30 flex items-center justify-center">
-            <span className="text-primary-400 text-[10px]">◇</span>
+            <span className="text-primary-400 text-[10px]">◊</span>
           </div>
           <span className="text-dark-300">Condition</span>
         </div>

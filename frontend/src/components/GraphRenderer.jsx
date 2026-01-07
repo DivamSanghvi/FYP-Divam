@@ -161,7 +161,7 @@ export const GraphRenderer = ({
       {/* Validation messages */}
       {graph.warnings && graph.warnings.length > 0 && (
         <div className="absolute bottom-4 right-4 bg-yellow-50 border border-yellow-300 rounded p-3 max-w-xs">
-          <p className="font-semibold text-yellow-900 text-sm mb-2">⚠️ Warnings:</p>
+          <p className="font-semibold text-yellow-900 text-sm mb-2">Warnings:</p>
           <ul className="text-xs text-yellow-800 space-y-1">
             {graph.warnings.map((w, i) => (
               <li key={i}>• {w}</li>

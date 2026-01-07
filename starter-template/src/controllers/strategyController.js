@@ -194,6 +194,14 @@ export const getStrategy = async (req, res) => {
       })
     }
 
+    // Verify ownership
+    if (strategy.owner && strategy.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You do not own this strategy"
+      })
+    }
+
     return res.status(200).json({
       success: true,
       strategy
@@ -225,6 +233,14 @@ export const updateStrategy = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Strategy not found"
+      })
+    }
+
+    // Verify ownership
+    if (strategy.owner && strategy.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You do not own this strategy"
       })
     }
 
@@ -295,7 +311,7 @@ export const deleteStrategy = async (req, res) => {
   try {
     const { id } = req.params
 
-    const strategy = await Strategy.findByIdAndDelete(id)
+    const strategy = await Strategy.findById(id)
 
     if (!strategy) {
       return res.status(404).json({
@@ -303,6 +319,16 @@ export const deleteStrategy = async (req, res) => {
         message: "Strategy not found"
       })
     }
+
+    // Verify ownership
+    if (strategy.owner && strategy.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You do not own this strategy"
+      })
+    }
+
+    await Strategy.findByIdAndDelete(id)
 
     return res.status(200).json({
       success: true,
@@ -317,10 +343,85 @@ export const deleteStrategy = async (req, res) => {
   }
 }
 
+export const duplicateStrategy = async (req, res) => {
+  try {
+    // Check authentication
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required"
+      })
+    }
+
+    const { id } = req.params
+    const originalStrategy = await Strategy.findById(id)
+
+    if (!originalStrategy) {
+      return res.status(404).json({
+        success: false,
+        message: "Strategy not found"
+      })
+    }
+
+    // Verify ownership
+    if (originalStrategy.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You do not own this strategy"
+      })
+    }
+
+    // Create a new strategy with copied data
+    const duplicatedStrategy = new Strategy({
+      symbol: originalStrategy.symbol,
+      description: `Copy of: ${originalStrategy.description || originalStrategy.userQuery}`,
+      userQuery: originalStrategy.userQuery,
+      timeframe: originalStrategy.timeframe,
+      entryNode: originalStrategy.entryNode,
+      nodes: JSON.parse(JSON.stringify(originalStrategy.nodes)), // Deep copy
+      warnings: originalStrategy.warnings,
+      suggestedEdits: originalStrategy.suggestedEdits,
+      isValid: originalStrategy.isValid,
+      validationErrors: originalStrategy.validationErrors,
+      llmModel: originalStrategy.llmModel,
+      llmPromptVersion: originalStrategy.llmPromptVersion,
+      owner: req.user._id,
+      isPublic: false
+    })
+
+    const savedDuplicate = await duplicatedStrategy.save()
+
+    return res.status(201).json({
+      success: true,
+      message: "Strategy duplicated successfully",
+      strategy: {
+        id: savedDuplicate._id,
+        symbol: savedDuplicate.symbol,
+        timeframe: savedDuplicate.timeframe,
+        isValid: savedDuplicate.isValid,
+        createdAt: savedDuplicate.createdAt,
+        graph: {
+          symbol: savedDuplicate.symbol,
+          entryNode: savedDuplicate.entryNode,
+          nodes: savedDuplicate.nodes
+        }
+      }
+    })
+  } catch (error) {
+    console.error("Duplicate strategy error:", error)
+    return res.status(500).json({
+      success: false,
+      message: "Error duplicating strategy",
+      error: error.message
+    })
+  }
+}
+
 export default {
   interpretStrategy,
   getStrategy,
   updateStrategy,
   getUserStrategies,
-  deleteStrategy
+  deleteStrategy,
+  duplicateStrategy
 }

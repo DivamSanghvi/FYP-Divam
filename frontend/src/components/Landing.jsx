@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
+import Link from 'next/link'
 
 // Animated counter component
 const AnimatedCounter = ({ end, duration = 2, suffix = "" }) => {
@@ -113,7 +114,7 @@ const InteractiveDSLPreview = () => {
           style={{ left: node.x, top: node.y, width: 150, textAlign: 'center' }}
         >
           <div className="flex items-center justify-center gap-2">
-            <span>{node.type === 'condition' ? '◇' : '■'}</span>
+            <span>{node.type === 'condition' ? '\u25ca' : '\u25a0'}</span>
             <span>{node.label}</span>
           </div>
         </motion.div>
@@ -560,22 +561,22 @@ export default function Landing({ onGetStarted }) {
 
   const features = [
     {
-      icon: "🎯",
+      icon: "",
       title: "Natural Language to Algo",
       description: "Turn plain-English strategies into structured trading rules with an AI assistant, then keep full control through a human-in-the-loop editor."
     },
     {
-      icon: "🎨",
+      icon: "",
       title: "Visual DSL for Trading Logic",
       description: "Design entries, exits, time filters, and risk rules as a visual decision tree of conditions and actions that compiles to C++ for high-performance execution."
     },
     {
-      icon: "⚙️",
+      icon: "",
       title: "Backtesting Engine",
       description: "High-speed C++ backtester running on historical OHLCV data, supporting indicators like RSI, EMA, MACD, Supertrend, and more."
     },
     {
-      icon: "🔮",
+      icon: "",
       title: "Future: Live Trading & Marketplace",
       description: "The same strategy definition can power live trading via broker APIs and a marketplace where creators share or monetize their algos."
     }
@@ -583,7 +584,7 @@ export default function Landing({ onGetStarted }) {
 
   const personas = [
     {
-      icon: "📊",
+      icon: "",
       title: "Retail Traders",
       description: "Want to systematize their ideas and stop manually clicking charts.",
       features: [
@@ -594,7 +595,7 @@ export default function Landing({ onGetStarted }) {
       ]
     },
     {
-      icon: "👥",
+      icon: "",
       title: "Creators & Influencers",
       description: "Want to publish strategies followers can allocate to, with transparent performance.",
       features: [
@@ -605,7 +606,7 @@ export default function Landing({ onGetStarted }) {
       ]
     },
     {
-      icon: "🔬",
+      icon: "",
       title: "Students & Builders",
       description: "Want a real, production-style algo stack to experiment with.",
       features: [
@@ -637,7 +638,6 @@ export default function Landing({ onGetStarted }) {
             whileHover={{ scale: 1.05 }}
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-xl">
-              📈
             </div>
             <span className="text-xl font-bold gradient-text">AlgoTrade</span>
           </motion.div>
@@ -648,14 +648,34 @@ export default function Landing({ onGetStarted }) {
             <a href="#who-its-for" className="text-dark-300 hover:text-white transition-colors">Who it's For</a>
           </div>
           
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onGetStarted}
-            className="btn-primary"
-          >
-            <span>Get Started</span>
-          </motion.button>
+          <div className="flex items-center gap-4">
+            <Link href="/auth/login">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-primary-400 hover:text-primary-300 transition-colors font-medium"
+              >
+                Login
+              </motion.button>
+            </Link>
+            <Link href="/auth/signup">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="btn-primary"
+              >
+                Sign Up
+              </motion.button>
+            </Link>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onGetStarted}
+              className="btn-secondary"
+            >
+              <span>Get Started</span>
+            </motion.button>
+          </div>
         </div>
       </motion.nav>
 
@@ -711,7 +731,7 @@ export default function Landing({ onGetStarted }) {
                 className="btn-primary text-lg px-8 py-4 glow-purple"
               >
                 <span className="flex items-center gap-2">
-                  🚀 Start designing a strategy
+                  Start designing a strategy
                 </span>
               </motion.button>
               <motion.button
@@ -719,7 +739,6 @@ export default function Landing({ onGetStarted }) {
                 whileTap={{ scale: 0.95 }}
                 className="btn-secondary text-lg px-8 py-4 flex items-center gap-2"
               >
-                <span>▶️</span>
                 <span>Watch 2-minute demo</span>
               </motion.button>
             </motion.div>
@@ -805,7 +824,7 @@ export default function Landing({ onGetStarted }) {
               visual={
                 <div className="glass-card rounded-2xl p-6">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-primary-500/30 flex items-center justify-center text-sm">🤖</div>
+                    <div className="w-8 h-8 rounded-full bg-primary-500/30 flex items-center justify-center text-sm"></div>
                     <div className="glass rounded-xl p-4 flex-1">
                       <p className="text-dark-300 text-sm italic">
                         "Enter long when RSI(14) drops below 30 before 2 PM. Exit when RSI rises above 70 or it's after 3:30 PM."
@@ -938,10 +957,10 @@ export default function Landing({ onGetStarted }) {
             className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4"
           >
             {[
-              { icon: "⚡", text: "C++ Performance" },
-              { icon: "🎨", text: "Visual Editor" },
-              { icon: "🔒", text: "Risk Management" },
-              { icon: "📈", text: "50+ Indicators" }
+              { icon: "", text: "C++ Performance" },
+              { icon: "", text: "Visual Editor" },
+              { icon: "", text: "Risk Management" },
+              { icon: "", text: "50+ Indicators" }
             ].map((item, i) => (
               <motion.div
                 key={i}
@@ -1002,22 +1021,22 @@ export default function Landing({ onGetStarted }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TrustItem
-              icon="👁️"
+              icon=""
               title="Full Transparency"
               description="Every IF/ELSE rule is visible in the strategy graph. No black-box algorithms or hidden logic."
             />
             <TrustItem
-              icon="🛡️"
+              icon=""
               title="Risk Controls by Design"
               description="Position sizing, time windows, and exits are explicit in the strategy graph. Nothing hidden."
             />
             <TrustItem
-              icon="🎓"
+              icon=""
               title="Education First"
               description="Focus on learning and backtesting before risking real capital. Understand your strategy thoroughly."
             />
             <TrustItem
-              icon="✅"
+              icon=""
               title="Human-in-the-Loop"
               description="AI assists with strategy generation, but you review and approve every rule before it runs."
             />
@@ -1031,7 +1050,7 @@ export default function Landing({ onGetStarted }) {
             className="mt-12 glass-card rounded-2xl p-8 text-center"
           >
             <p className="text-dark-300 text-lg">
-              <span className="text-warning">⚠️</span> Live trading and marketplace features come with additional safeguards, 
+              Live trading and marketplace features come with additional safeguards, 
               compliance checks, and risk acknowledgments.
             </p>
           </motion.div>
@@ -1080,7 +1099,7 @@ export default function Landing({ onGetStarted }) {
                 className="btn-primary text-lg px-10 py-4 glow-purple"
               >
                 <span className="flex items-center gap-2">
-                  🚀 Start Designing — It's Free
+                  Start Designing — It's Free
                 </span>
               </motion.button>
             </div>
@@ -1094,7 +1113,6 @@ export default function Landing({ onGetStarted }) {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-sm">
-                📈
               </div>
               <span className="font-semibold text-white">AlgoTrade Democratizer</span>
             </div>

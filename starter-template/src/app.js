@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser"
 
 // Import routes
 import strategyRoutes from "./routes/strategyRoutes.js"
+import authRoutes from "./routes/authRoutes.js"
 
 const app = express()
 
@@ -18,6 +19,7 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 // Routes declaration
+app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/strategies", strategyRoutes)
 
 // http://localhost:8000/api/v1/strategies/interpret

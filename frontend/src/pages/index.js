@@ -1,7 +1,9 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/router"
 import axios from "axios"
 import dynamic from "next/dynamic"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuth } from "@/context/AuthContext"
 import StrategyForm from "@/components/StrategyForm"
 import ValidationPanel from "@/components/ValidationPanel"
 import Landing from "@/components/Landing"
@@ -11,17 +13,42 @@ const StrategyFlowEditor = dynamic(
   () => import("@/components/StrategyFlowEditor"),
   { ssr: false, loading: () => (
     <div className="h-[500px] glass-card rounded-2xl animate-pulse flex items-center justify-center">
-      <div className="text-primary-400 animate-spin text-4xl">⚙️</div>
+      <div className="text-primary-400 animate-spin text-4xl"></div>
     </div>
   )}
 )
 
 export default function Home() {
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
   const [showApp, setShowApp] = useState(false)
   const [strategy, setStrategy] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [selectedNode, setSelectedNode] = useState(null)
+
+  // Redirect to dashboard if authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-white text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+          <p className="mt-4 text-lg">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If already authenticated, return null while redirecting
+  if (isAuthenticated) {
+    return null
+  }
 
   const handleInterpretStrategy = async (data) => {
     setLoading(true)
@@ -34,6 +61,8 @@ export default function Home() {
         userQuery: data.description,
         symbol: data.symbol.toUpperCase(),
         timeframe: data.timeframe
+      }, {
+        withCredentials: true
       })
 
       if (response.data.success) {
@@ -74,7 +103,6 @@ export default function Home() {
               onClick={() => setShowApp(false)}
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-xl shadow-lg shadow-primary-500/30">
-                📈
               </div>
               <div>
                 <h1 className="text-xl font-bold gradient-text">AlgoTrade</h1>
@@ -180,9 +208,9 @@ export default function Home() {
                     
                     <div className="grid grid-cols-3 gap-4">
                       {[
-                        { label: "Symbol", value: strategy.symbol, icon: "💎" },
-                        { label: "Timeframe", value: strategy.timeframe, icon: "⏱️" },
-                        { label: "Nodes", value: strategy.graph?.nodes?.length || 0, icon: "🔗" }
+                        { label: "Symbol", value: strategy.symbol, icon: "" },
+                        { label: "Timeframe", value: strategy.timeframe, icon: "" },
+                        { label: "Nodes", value: strategy.graph?.nodes?.length || 0, icon: "" }
                       ].map((item, i) => (
                         <motion.div
                           key={i}
@@ -191,7 +219,7 @@ export default function Home() {
                           transition={{ delay: 0.2 + i * 0.1 }}
                           className="glass rounded-xl p-4 text-center"
                         >
-                          <div className="text-2xl mb-2">{item.icon}</div>
+                          <div className="text-2xl mb-2"></div>
                           <div className="text-dark-400 text-xs mb-1">{item.label}</div>
                           <div className="text-white font-bold">{item.value}</div>
                         </motion.div>
@@ -208,7 +236,7 @@ export default function Home() {
                   >
                     <div className="p-4 border-b border-primary-500/20 flex justify-between items-center">
                       <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                        <span className="text-xl">🔗</span> Strategy Flow
+                        Strategy Flow
                       </h3>
                       <span className="text-xs text-dark-400 bg-dark-800 px-3 py-1 rounded-full">
                         Drag to rearrange • Click for details
@@ -269,7 +297,6 @@ export default function Home() {
                           transition={{ duration: 1, repeat: Infinity }}
                           className="text-2xl"
                         >
-                          ✅
                         </motion.span>
                         <span className="text-success font-semibold">
                           Strategy Saved (ID: {strategy.id.slice(-8)})
@@ -293,7 +320,6 @@ export default function Home() {
                       transition={{ duration: 3, repeat: Infinity }}
                       className="text-6xl mb-6"
                     >
-                      ✨
                     </motion.div>
                     <h3 className="text-xl font-bold text-white mb-3">
                       Ready to Build Your Strategy

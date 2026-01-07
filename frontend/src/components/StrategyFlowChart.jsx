@@ -51,7 +51,7 @@ export default function StrategyFlowChart({ nodes, entryNode, onNodeClick, selec
           `}
         >
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">{isCondition ? "◇" : "■"}</span>
+            <span className="text-lg">{isCondition ? "◊" : "■"}</span>
             <span className="font-bold text-sm">{node.id}</span>
             <span className={`text-xs px-2 py-0.5 rounded ${isCondition ? "bg-blue-500/30" : "bg-green-500/30"}`}>
               {isCondition ? "CONDITION" : "ACTION"}
@@ -117,7 +117,7 @@ export default function StrategyFlowChart({ nodes, entryNode, onNodeClick, selec
       {/* Legend */}
       <div className="flex gap-6 mb-6 pb-4 border-b border-slate-700">
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-blue-400 text-lg">◇</span>
+          <span className="text-blue-400 text-lg">◊</span>
           <span className="text-slate-300">Condition</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
@@ -156,7 +156,7 @@ export default function StrategyFlowChart({ nodes, entryNode, onNodeClick, selec
                 ${selectedNode?.id === node.id ? "ring-2 ring-white" : ""}
               `}
             >
-              {node.id}: {node.type === "condition" ? "◇" : "■"} {node.type === "action" ? node.action?.type : "IF"}
+              {node.id}: {node.type === "condition" ? "◊" : "■"} {node.type === "action" ? node.action?.type : "IF"}
             </button>
           ))}
         </div>

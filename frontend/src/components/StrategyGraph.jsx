@@ -121,12 +121,12 @@ const StrategyGraph = ({ graph, onNodeClick, selectedNodeId }) => {
     const qtyStr = qty ? ` (${qty})` : ''
     
     switch (type) {
-      case 'ENTER_LONG': return `📈 BUY ${symbol}${qtyStr}`
-      case 'ENTER_SHORT': return `📉 SELL ${symbol}${qtyStr}`
-      case 'EXIT_POSITION': return `🚪 EXIT ${symbol}`
-      case 'EXIT_LONG': return `🚪 EXIT LONG ${symbol}`
-      case 'EXIT_SHORT': return `🚪 EXIT SHORT ${symbol}`
-      case 'NO_TRADE': return `⏸️ NO TRADE`
+      case 'ENTER_LONG': return `BUY ${symbol}${qtyStr}`
+      case 'ENTER_SHORT': return `SELL ${symbol}${qtyStr}`
+      case 'EXIT_POSITION': return `EXIT ${symbol}`
+      case 'EXIT_LONG': return `EXIT LONG ${symbol}`
+      case 'EXIT_SHORT': return `EXIT SHORT ${symbol}`
+      case 'NO_TRADE': return `NO TRADE`
       default: return type
     }
   }
@@ -135,7 +135,6 @@ const StrategyGraph = ({ graph, onNodeClick, selectedNodeId }) => {
     return (
       <div className="w-full h-96 flex items-center justify-center bg-slate-900 rounded-xl border border-slate-700">
         <div className="text-center">
-          <div className="text-6xl mb-4">📊</div>
           <p className="text-slate-400 text-lg">No strategy graph to display</p>
           <p className="text-slate-500 text-sm mt-2">Enter a strategy description above</p>
         </div>

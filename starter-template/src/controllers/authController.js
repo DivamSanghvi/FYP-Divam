@@ -168,17 +168,24 @@ export const logout = (req, res) => {
   }
 };
 
-export const verifyToken = (req, res) => {
+export const verifyToken = async (req, res) => {
   try {
     const user = req.user;
-    const dbUser = User.findById(user.userId);
+    const dbUser = await User.findById(user.userId);
+
+    if (!dbUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     return res.status(200).json({
       success: true,
       message: "Token is valid",
       user: {
         id: user.userId,
-        email: dbUser?.email,
+        email: dbUser.email,
       },
     });
   } catch (error) {

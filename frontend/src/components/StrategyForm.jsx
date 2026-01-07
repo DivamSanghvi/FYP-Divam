@@ -16,7 +16,7 @@ export default function StrategyForm({ onSubmit, loading, error }) {
   const exampleStrategies = [
     {
       icon: "",
-      text: "Buy AAPL when RSI(14) drops below 30 and it's before 2 PM. Exit when RSI rises above 70."
+      text: "Buy AAPL when RSI(14) drops below 30. Exit when RSI rises above 70."
     },
     {
       icon: "",
@@ -24,7 +24,7 @@ export default function StrategyForm({ onSubmit, loading, error }) {
     },
     {
       icon: "",
-      text: "If MACD crosses above signal line and time is between 9:30 and 12:00, buy with 10% equity."
+      text: "If MACD crosses above signal line, buy with 10% equity. Exit when MACD crosses below signal."
     }
   ]
 

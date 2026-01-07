@@ -3,14 +3,23 @@ import { useRouter } from 'next/router'
 import { useAuth } from '@/context/AuthContext'
 import { motion } from 'framer-motion'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import { useBacktest } from '@/hooks/useBacktest'
 
 const Dashboard = () => {
   const router = useRouter()
   const { currentUser, logout, isLoading } = useAuth()
+  const { runBacktest, loading: isBacktesting, error: backtestError } = useBacktest()
   const [strategies, setStrategies] = useState([])
   const [isLoadingStrategies, setIsLoadingStrategies] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState('all') // all, valid, invalid
+  const [showJsonModal, setShowJsonModal] = useState(false)
+  const [selectedStrategyJson, setSelectedStrategyJson] = useState(null)
+
+  // Debug: Log currentUser to see its structure
+  useEffect(() => {
+    console.log('Current User:', currentUser)
+  }, [currentUser])
 
   useEffect(() => {
     if (!isLoading && currentUser) {
@@ -84,6 +93,41 @@ const Dashboard = () => {
     }
   }
 
+  const handleBacktestStrategy = async (strategyId) => {
+    try {
+      // Find the strategy to get its symbol
+      const strategy = strategies.find(s => s._id === strategyId)
+      
+      if (!strategy) {
+        setError('Strategy not found')
+        return
+      }
+      
+      console.log('Loading analytics for symbol:', strategy.symbol)
+      
+      // Store symbol in sessionStorage for analytics page
+      sessionStorage.setItem('backtestSymbol', strategy.symbol)
+      
+      // Redirect to analytics with autoload
+      router.push('/analytics?autoload=true')
+      
+      // Uncomment below when backtest API is ready:
+      /*
+      const data = await runBacktest(strategyId)
+      if (data.indicators && data.indicators.length > 0) {
+        sessionStorage.setItem('backtestData', JSON.stringify(data.indicators))
+        sessionStorage.setItem('backtestSymbol', data.symbol)
+        router.push('/analytics?autoload=true')
+      } else {
+        setError('No indicator data received from backtest')
+      }
+      */
+    } catch (err) {
+      console.error('Backtest error:', err)
+      setError('Failed to load analytics')
+    }
+  }
+
   const handleViewStrategy = (id) => {
     router.push(`/editor?id=${id}`)
   }
@@ -113,20 +157,20 @@ const Dashboard = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="min-h-screen bg-[#0a0a0a]">
         {/* Navigation Bar */}
-        <nav className="bg-slate-800/50 backdrop-blur-xl border-b border-purple-500/20 sticky top-0 z-50">
+        <nav className="bg-[#0d1117] border-b border-[#1f1f1f] sticky top-0 z-50 shadow-lg">
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-              AlgoTrade
+            <h1 className="text-2xl font-bold text-white">
+              AlgoTrade <span className="text-[#22c55e]">Dashboard</span>
             </h1>
             <div className="flex items-center gap-4">
-              <span className="text-gray-400 text-sm">
-                Welcome, <span className="text-cyan-400 font-semibold">{currentUser?.email}</span>
+              <span className="text-[#9ca3af] text-sm">
+                Welcome, <span className="text-white font-semibold">{currentUser?.email}</span>
               </span>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded-lg transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-[#1f1f1f] hover:bg-[#2a2a2a] border border-[#3a3a3a] text-[#ef4444] rounded-lg transition-colors text-sm font-medium"
               >
                 Logout
               </button>
@@ -141,11 +185,11 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-4xl font-bold text-white mb-2">Your Strategies</h2>
-                <p className="text-gray-400">Manage and create your algorithmic trading strategies</p>
+                <p className="text-[#9ca3af]">Manage and create your algorithmic trading strategies</p>
               </div>
               <button
                 onClick={handleCreateNew}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
+                className="px-6 py-3 bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold rounded-lg transition-all shadow-lg"
               >
                 Create New Strategy
               </button>
@@ -159,8 +203,8 @@ const Dashboard = () => {
                   onClick={() => setFilter(f)}
                   className={`px-4 py-2 rounded-lg font-medium transition-all capitalize ${
                     filter === f
-                      ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/50'
-                      : 'bg-slate-700/50 text-gray-300 hover:bg-slate-700'
+                      ? 'bg-[#22c55e] text-white shadow-lg'
+                      : 'bg-[#1f1f1f] text-[#9ca3af] hover:bg-[#2a2a2a] border border-[#3a3a3a]'
                   }`}
                 >
                   {f === 'all' ? 'All Strategies' : `${f === 'valid' ? 'Valid' : 'Invalid'} Only`}
@@ -171,8 +215,8 @@ const Dashboard = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-              <p className="text-red-300">{error}</p>
+            <div className="mb-6 p-4 bg-[#1f1f1f] border border-[#ef4444] rounded-lg">
+              <p className="text-[#ef4444]">{error}</p>
             </div>
           )}
 
@@ -180,22 +224,22 @@ const Dashboard = () => {
           {isLoadingStrategies ? (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mb-4"></div>
-                <p className="text-gray-400">Loading your strategies...</p>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#22c55e] mb-4"></div>
+                <p className="text-[#9ca3af]">Loading your strategies...</p>
               </div>
             </div>
           ) : filteredStrategies.length === 0 ? (
             <div className="text-center py-20">
-              <div className="inline-block p-4 rounded-full bg-purple-500/20 mb-4">
-                <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-block p-4 rounded-full bg-[#1f1f1f] border border-[#3a3a3a] mb-4">
+                <svg className="w-8 h-8 text-[#9ca3af]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m0 0h6m-6-6h-6" />
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">No strategies yet</h3>
-              <p className="text-gray-400 mb-6">Create your first trading strategy to get started</p>
+              <p className="text-[#9ca3af] mb-6">Create your first trading strategy to get started</p>
               <button
                 onClick={handleCreateNew}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/50 transition-all"
+                className="px-6 py-3 bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold rounded-lg transition-all shadow-lg"
               >
                 Create First Strategy
               </button>
@@ -211,7 +255,7 @@ const Dashboard = () => {
                 <motion.div
                   key={strategy._id}
                   variants={itemVariants}
-                  className="bg-slate-800/50 backdrop-blur-xl border border-purple-500/20 rounded-lg p-6 hover:border-cyan-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/20"
+                  className="bg-[#0d1117] border border-[#1f1f1f] rounded-lg p-6 hover:border-[#3a3a3a] transition-all shadow-lg"
                 >
                   {/* Header */}
                   <div className="mb-4">
@@ -219,26 +263,26 @@ const Dashboard = () => {
                       <h3 className="text-lg font-semibold text-white">{strategy.symbol}</h3>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         strategy.isValid
-                          ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                          : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50'
+                          ? 'bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/30'
+                          : 'bg-[#eab308]/10 text-[#eab308] border border-[#eab308]/30'
                       }`}>
                         {strategy.isValid ? 'Valid' : 'Invalid'}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-400 line-clamp-2">{strategy.description}</p>
+                    <p className="text-sm text-[#9ca3af] line-clamp-2">{strategy.description}</p>
                   </div>
 
                   {/* Details */}
-                  <div className="space-y-2 mb-6 text-sm text-gray-400">
+                  <div className="space-y-2 mb-6 text-sm text-[#9ca3af]">
                     <p>
-                      <span className="text-cyan-400">Timeframe:</span> {strategy.timeframe}
+                      <span className="text-white">Timeframe:</span> {strategy.timeframe}
                     </p>
                     <p>
-                      <span className="text-cyan-400">Created:</span> {new Date(strategy.createdAt).toLocaleDateString()}
+                      <span className="text-white">Created:</span> {new Date(strategy.createdAt).toLocaleDateString()}
                     </p>
                     {strategy.updatedAt && (
                       <p>
-                        <span className="text-cyan-400">Updated:</span> {new Date(strategy.updatedAt).toLocaleDateString()}
+                        <span className="text-white">Updated:</span> {new Date(strategy.updatedAt).toLocaleDateString()}
                       </p>
                     )}
                   </div>
@@ -247,19 +291,30 @@ const Dashboard = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleViewStrategy(strategy._id)}
-                      className="flex-1 px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-cyan-400 rounded text-sm font-medium transition-colors"
+                      className="flex-1 px-3 py-2 bg-[#1f1f1f] hover:bg-[#2a2a2a] border border-[#3a3a3a] text-white rounded text-sm font-medium transition-colors"
                     >
                       View
                     </button>
                     <button
                       onClick={() => handleDuplicateStrategy(strategy._id)}
-                      className="flex-1 px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-purple-400 rounded text-sm font-medium transition-colors"
+                      className="flex-1 px-3 py-2 bg-[#1f1f1f] hover:bg-[#2a2a2a] border border-[#3a3a3a] text-[#9ca3af] rounded text-sm font-medium transition-colors"
                     >
                       Duplicate
                     </button>
                     <button
+                      onClick={() => handleBacktestStrategy(strategy._id)}
+                      disabled={isBacktesting || !strategy.isValid}
+                      className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-colors ${
+                        isBacktesting || !strategy.isValid
+                          ? 'bg-[#1f1f1f] border border-[#3a3a3a] text-[#6b7280] cursor-not-allowed'
+                          : 'bg-[#22c55e]/10 hover:bg-[#22c55e]/20 border border-[#22c55e]/30 text-[#22c55e]'
+                      }`}
+                    >
+                      {isBacktesting ? 'Running...' : 'Backtest'}
+                    </button>
+                    <button
                       onClick={() => handleDeleteStrategy(strategy._id)}
-                      className="flex-1 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 rounded text-sm font-medium transition-colors"
+                      className="flex-1 px-3 py-2 bg-[#1f1f1f] hover:bg-[#2a2a2a] border border-[#3a3a3a] text-[#ef4444] rounded text-sm font-medium transition-colors"
                     >
                       Delete
                     </button>
@@ -270,6 +325,55 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* JSON Modal */}
+      {showJsonModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#0d1117] rounded-xl border border-[#1f1f1f] shadow-2xl max-w-4xl w-full max-h-[80vh] flex flex-col"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-[#1f1f1f]">
+              <h3 className="text-xl font-bold text-white">Backtest Results</h3>
+              <button
+                onClick={() => setShowJsonModal(false)}
+                className="p-2 hover:bg-[#1f1f1f] rounded-lg transition-colors text-[#9ca3af] hover:text-white"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* JSON Content */}
+            <div className="flex-1 overflow-auto p-6">
+              <pre className="text-sm text-[#9ca3af] font-mono bg-[#0a0a0a] rounded-lg p-4 overflow-x-auto border border-[#1f1f1f]">
+                {selectedStrategyJson}
+              </pre>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-[#1f1f1f] flex gap-3">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(selectedStrategyJson)
+                }}
+                className="px-4 py-2 bg-[#1f1f1f] hover:bg-[#2a2a2a] border border-[#3a3a3a] text-white rounded-lg transition-colors text-sm font-medium"
+              >
+                Copy to Clipboard
+              </button>
+              <button
+                onClick={() => setShowJsonModal(false)}
+                className="px-4 py-2 bg-[#1f1f1f] hover:bg-[#2a2a2a] border border-[#3a3a3a] text-[#9ca3af] rounded-lg transition-colors text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </ProtectedRoute>
   )
 }

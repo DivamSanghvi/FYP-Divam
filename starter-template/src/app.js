@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser"
 // Import routes
 import strategyRoutes from "./routes/strategyRoutes.js"
 import authRoutes from "./routes/authRoutes.js"
+import backtestRoutes from "./routes/backtestRoutes.js"
 
 const app = express()
 
@@ -21,9 +22,12 @@ app.use(cookieParser())
 // Routes declaration
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/strategies", strategyRoutes)
+app.use("/api/v1/backtest", backtestRoutes)
 
 // http://localhost:8000/api/v1/strategies/interpret
 // http://localhost:8000/api/v1/strategies/my-strategies
 // http://localhost:8000/api/v1/strategies/:id
+// http://localhost:8000/api/v1/backtest/:id
+// http://localhost:8000/api/v1/backtest/health
 
 export { app }

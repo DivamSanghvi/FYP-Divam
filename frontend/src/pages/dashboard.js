@@ -103,7 +103,11 @@ const Dashboard = () => {
         return
       }
       
-      console.log('Loading analytics for symbol:', strategy.symbol)
+      console.log('Running backtest for:', strategy.symbol)
+      
+      // Call the actual backtest API
+      const data = await runBacktest(strategyId)
+      console.log('Backtest completed:', data)
       
       // Store symbol in sessionStorage for analytics page
       sessionStorage.setItem('backtestSymbol', strategy.symbol)
@@ -111,20 +115,9 @@ const Dashboard = () => {
       // Redirect to analytics with autoload
       router.push('/analytics?autoload=true')
       
-      // Uncomment below when backtest API is ready:
-      /*
-      const data = await runBacktest(strategyId)
-      if (data.indicators && data.indicators.length > 0) {
-        sessionStorage.setItem('backtestData', JSON.stringify(data.indicators))
-        sessionStorage.setItem('backtestSymbol', data.symbol)
-        router.push('/analytics?autoload=true')
-      } else {
-        setError('No indicator data received from backtest')
-      }
-      */
     } catch (err) {
       console.error('Backtest error:', err)
-      setError('Failed to load analytics')
+      setError(backtestError || 'Backtest failed: ' + err.message)
     }
   }
 

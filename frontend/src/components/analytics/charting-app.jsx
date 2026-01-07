@@ -9,6 +9,7 @@ import { parseCSVData } from "@/lib/analytics/csv-parser"
 
 export default function ChartingApp({ autoload, symbol: propSymbol }) {
   const [data, setData] = useState([])
+  const [trades, setTrades] = useState([])
   const [fileName, setFileName] = useState("STOCK")
   const [isLoading, setIsLoading] = useState(false)
   const [timeframe, setTimeframe] = useState("ALL")
@@ -31,7 +32,7 @@ export default function ChartingApp({ autoload, symbol: propSymbol }) {
       // Get symbol from props or sessionStorage
       const symbol = propSymbol || sessionStorage.getItem('backtestSymbol')
       
-      console.log('Loading CSV for symbol:', symbol)
+      console.log('Loading CSVs for symbol:', symbol)
       
       if (!symbol) {
         console.error('No symbol provided')
@@ -40,27 +41,52 @@ export default function ChartingApp({ autoload, symbol: propSymbol }) {
         return
       }
       
-      // Fetch CSV file from uploads folder
-      const csvUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/uploads/indicators_${symbol}.csv`
-      console.log('Fetching CSV from:', csvUrl)
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       
-      const response = await fetch(csvUrl)
+      // Fetch indicators CSV
+      const indicatorsUrl = `${baseUrl}/uploads/indicators_${symbol}.csv`
+      console.log('Fetching indicators from:', indicatorsUrl)
       
-      if (!response.ok) {
-        throw new Error(`Failed to load CSV file: ${response.status} ${response.statusText}`)
+      const indicatorsResponse = await fetch(indicatorsUrl)
+      
+      if (!indicatorsResponse.ok) {
+        throw new Error(`Failed to load indicators CSV: ${indicatorsResponse.status} ${indicatorsResponse.statusText}`)
       }
       
-      const csvText = await response.text()
-      console.log('CSV loaded, length:', csvText.length)
-      console.log('First 200 chars:', csvText.substring(0, 200))
+      const indicatorsCsvText = await indicatorsResponse.text()
+      console.log('Indicators CSV loaded, length:', indicatorsCsvText.length)
       
-      // Parse and set the data
-      const parsed = parseCSVData(csvText)
+      // Parse indicators data
+      const parsed = parseCSVData(indicatorsCsvText)
       console.log('Parsed data points:', parsed.length)
       console.log('First data point:', parsed[0])
       
       setData(parsed)
       setFileName(symbol)
+      
+      // Fetch trades CSV
+      const tradesUrl = `${baseUrl}/uploads/trades_${symbol}.csv`
+      console.log('Fetching trades from:', tradesUrl)
+      
+      try {
+        const tradesResponse = await fetch(tradesUrl)
+        
+        if (tradesResponse.ok) {
+          const tradesCsvText = await tradesResponse.text()
+          console.log('Trades CSV loaded, length:', tradesCsvText.length)
+          
+          // Parse trades CSV
+          const tradesData = parseTradesCSV(tradesCsvText)
+          console.log('Parsed trades:', tradesData.length)
+          setTrades(tradesData)
+        } else {
+          console.warn('Trades CSV not found, continuing without trades')
+          setTrades([])
+        }
+      } catch (tradesError) {
+        console.warn('Error loading trades CSV:', tradesError)
+        setTrades([])
+      }
       
       // Auto-detect timeframe based on data range
       if (parsed.length > 0) {
@@ -98,6 +124,22 @@ export default function ChartingApp({ autoload, symbol: propSymbol }) {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Helper function to parse trades CSV
+  const parseTradesCSV = (csvText) => {
+    const lines = csvText.trim().split('\n')
+    if (lines.length < 2) return []
+    
+    const headers = lines[0].split(',').map(h => h.trim())
+    return lines.slice(1).map(line => {
+      const values = line.split(',')
+      const trade = {}
+      headers.forEach((header, i) => {
+        trade[header] = values[i]?.trim() || ''
+      })
+      return trade
+    })
   }
 
   // Keyboard shortcuts
@@ -250,6 +292,7 @@ export default function ChartingApp({ autoload, symbol: propSymbol }) {
               chartType={chartType}
               indicators={indicators}
               drawingMode={drawingMode}
+              trades={trades}
             />
           </>
         )}

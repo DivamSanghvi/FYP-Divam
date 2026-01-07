@@ -3,6 +3,9 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import Strategy from '../models/Strategy.js'
+import FormData from 'form-data'
+import axios from 'axios'
+import AdmZip from 'adm-zip'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -69,7 +72,6 @@ function parseMetrics(metricsText) {
 export const runBacktest = async (req, res) => {
   try {
     const { id } = req.params
-    const { startDate, endDate } = req.body
 
     // Fetch strategy from database
     const strategy = await Strategy.findById(id)
@@ -100,50 +102,61 @@ export const runBacktest = async (req, res) => {
 
     const symbol = strategy.symbol
     
-    // 1. Write strategy.json
-    const strategyPath = path.join(STRATEGY_DIR, 'strategy.json')
+    // 1. Create strategy.json
     const strategyJson = {
       symbol: strategy.symbol,
       timeframe: strategy.timeframe,
       entryNode: strategy.entryNode,
       nodes: strategy.nodes
     }
+    
+    // 2. Create temp directory for strategy.json
+    const tempDir = path.join(__dirname, '../../temp')
+    await fs.mkdir(tempDir, { recursive: true })
+    const strategyPath = path.join(tempDir, 'strategy.json')
     await fs.writeFile(strategyPath, JSON.stringify(strategyJson, null, 2))
     
-    // 2. Generate C++ code from strategy
-    console.log('Generating C++ code from strategy...')
-    await executeCommand(`${CODEGEN_EXE} ${strategyPath}`)
+    // 3. Send strategy.json to backtest server
+    const form = new FormData()
+    form.append('strategy', await fs.readFile(strategyPath), {
+      filename: 'strategy.json',
+      contentType: 'application/json'
+    })
     
-    // 3. Compile backtest engine (only if code changed)
-    console.log('Compiling backtest engine...')
-    const compileCmd = `cd ${STRATEGY_DIR} && g++ -std=c++17 main_backtest_improved.cpp runtime/indicators/RSI.cpp runtime/indicators/MACD.cpp -lta-lib -o backtest`
-    await executeCommand(compileCmd)
+    console.log('Sending strategy to backtest server...')
+    const response = await axios.post('http://localhost:3001/backtest', form, {
+      headers: form.getHeaders(),
+      responseType: 'arraybuffer',
+      timeout: 60000 // 60 second timeout
+    })
     
-    // 4. Run backtest
-    console.log('Running backtest...')
-    const backtestCmd = startDate && endDate 
-      ? `${BACKTEST_EXE} ${symbol} ${startDate} ${endDate}`
-      : `${BACKTEST_EXE} ${symbol}`
+    // 4. Save and extract zip file
+    const zipPath = path.join(tempDir, 'backtest_result.zip')
+    await fs.writeFile(zipPath, response.data)
     
-    const output = await executeCommand(backtestCmd)
+    // 5. Extract CSV files to public/uploads
+    const zip = new AdmZip(zipPath)
+    const uploadsDir = path.join(__dirname, '../../public/uploads')
+    await fs.mkdir(uploadsDir, { recursive: true })
     
-    // 5. Read output files
-    const trades = await readCSV(path.join(STRATEGY_DIR, `trades_${symbol}.csv`))
-    const metricsText = await fs.readFile(path.join(STRATEGY_DIR, `metrics_${symbol}.txt`), 'utf-8')
-    const indicators = await readCSV(path.join(STRATEGY_DIR, `indicators_${symbol}.csv`))
+    zip.extractAllTo(uploadsDir, true)
+    console.log('Extracted CSV files to uploads folder')
     
-    // 6. Parse metrics into JSON
-    const metrics = parseMetrics(metricsText)
+    // 6. Clean up temp files
+    await fs.unlink(strategyPath)
+    await fs.unlink(zipPath)
+    
+    // 7. Read the extracted CSV files
+    const files = await fs.readdir(uploadsDir)
+    const csvFiles = files.filter(f => f.endsWith('.csv') && f.includes(symbol))
     
     return res.status(200).json({
       success: true,
       strategyId: strategy._id,
       symbol,
       timeframe: strategy.timeframe,
-      trades,
-      metrics,
-      indicators,
-      consoleOutput: output,
+      message: 'Backtest completed successfully',
+      csvFiles,
       backtestDate: new Date()
     })
     
@@ -151,8 +164,8 @@ export const runBacktest = async (req, res) => {
     console.error('Backtest error:', error)
     return res.status(500).json({
       success: false,
-      message: 'Backtest execution failed',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: error.message || 'Backtest failed',
+      error: error.toString()
     })
   }
 }

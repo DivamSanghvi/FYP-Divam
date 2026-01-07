@@ -71,6 +71,85 @@ const candlestickPlugin = {
   },
 }
 
+const tradesPlugin = {
+  id: "trades",
+  afterDatasetsDraw(chart) {
+    const { ctx, data, scales } = chart
+    if (!chart.options.plugins?.trades?.data) return
+
+    const trades = chart.options.plugins.trades.data
+    const xScale = scales.x
+    const yScale = scales.y
+    const chartData = data.datasets[0]?.data || []
+
+    trades.forEach((trade) => {
+      // Find the index of entry and exit times in the chart data
+      const entryDate = new Date(trade.EntryTime)
+      const exitDate = new Date(trade.ExitTime)
+      
+      const entryIndex = chartData.findIndex(d => {
+        const dataDate = new Date(d.x)
+        return Math.abs(dataDate - entryDate) < 24 * 60 * 60 * 1000 // Within 1 day
+      })
+      
+      const exitIndex = chartData.findIndex(d => {
+        const dataDate = new Date(d.x)
+        return Math.abs(dataDate - exitDate) < 24 * 60 * 60 * 1000
+      })
+
+      if (entryIndex === -1 || exitIndex === -1) return
+
+      const entryPrice = parseFloat(trade.EntryPrice)
+      const exitPrice = parseFloat(trade.ExitPrice)
+      const pnl = parseFloat(trade.PnL)
+      
+      const entryX = xScale.getPixelForValue(entryIndex)
+      const exitX = xScale.getPixelForValue(exitIndex)
+      const entryY = yScale.getPixelForValue(entryPrice)
+      const exitY = yScale.getPixelForValue(exitPrice)
+
+      // Draw entry marker (green arrow up)
+      ctx.save()
+      ctx.fillStyle = "#22c55e"
+      ctx.strokeStyle = "#22c55e"
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(entryX, entryY + 10)
+      ctx.lineTo(entryX - 5, entryY + 20)
+      ctx.lineTo(entryX + 5, entryY + 20)
+      ctx.closePath()
+      ctx.fill()
+      ctx.stroke()
+      ctx.restore()
+
+      // Draw exit marker (red arrow down or green arrow down depending on PnL)
+      ctx.save()
+      ctx.fillStyle = pnl >= 0 ? "#22c55e" : "#ef4444"
+      ctx.strokeStyle = pnl >= 0 ? "#22c55e" : "#ef4444"
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(exitX, exitY - 10)
+      ctx.lineTo(exitX - 5, exitY - 20)
+      ctx.lineTo(exitX + 5, exitY - 20)
+      ctx.closePath()
+      ctx.fill()
+      ctx.stroke()
+      ctx.restore()
+
+      // Draw line connecting entry to exit
+      ctx.save()
+      ctx.strokeStyle = pnl >= 0 ? "#22c55e80" : "#ef444480"
+      ctx.lineWidth = 1
+      ctx.setLineDash([5, 5])
+      ctx.beginPath()
+      ctx.moveTo(entryX, entryY)
+      ctx.lineTo(exitX, exitY)
+      ctx.stroke()
+      ctx.restore()
+    })
+  },
+}
+
 // Register base plugins
 ChartJS.register(
   CategoryScale,
@@ -83,9 +162,10 @@ ChartJS.register(
   Legend,
   Filler,
   candlestickPlugin,
+  tradesPlugin
 )
 
-const ChartDisplay = forwardRef(({ data, chartType, indicators, drawingMode }, ref) => {
+const ChartDisplay = forwardRef(({ data, chartType, indicators, drawingMode, trades = [] }, ref) => {
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
   const [zoomPluginLoaded, setZoomPluginLoaded] = useState(false)
@@ -327,6 +407,9 @@ const ChartDisplay = forwardRef(({ data, chartType, indicators, drawingMode }, r
       intersect: false,
     },
     plugins: {
+      trades: {
+        data: trades,
+      },
       legend: {
         display: true,
         labels: {
